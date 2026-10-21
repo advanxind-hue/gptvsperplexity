@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c0c0c">
+<title>Kode Pintar — ChatGPT vs Perplexity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c0c;--card:#131313;--white:#fff;--gray:#8a8a8a;--dim:#555;--orange:#ffa917;--green:#76b837;--cyan:#009bcd;--blue:#4284f7;--red:#e5484d}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505;color:var(--white);font-family:Arial,Helvetica,sans-serif}
+body{display:flex;align-items:center;justify-content:center;overscroll-behavior:none}
+#stage{position:relative;width:min(100vw,56.25vh);height:min(100vh,177.7778vw);aspect-ratio:9/16;overflow:hidden;background:var(--bg);container-type:size;isolation:isolate}
+#grid{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:4.074% 2.292%}
+#vignette{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.32) 100%)}
+.scene{position:absolute;inset:0;z-index:2;display:none;overflow:hidden}
+.scene.active{display:block}
+.content{position:absolute;inset:0;padding:8.2% 7.4% 8.5%;font-family:'Archivo Black',Impact,'Arial Black',sans-serif}
+.mono{font-family:'JetBrains Mono','Courier New',monospace}
+.watermark{position:absolute;left:7.4%;bottom:4.2%;font:500 clamp(8px,1.05cqw,16px) 'JetBrains Mono','Courier New',monospace;letter-spacing:.08em;color:#666;z-index:20}
+.watermark:before{content:"";display:inline-block;width:.42em;height:.42em;border-radius:50%;background:var(--orange);margin-right:.65em;vertical-align:middle}
+.eyebrow{font:600 clamp(10px,1.45cqw,20px) 'JetBrains Mono','Courier New',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--orange)}
+.big{font-size:clamp(32px,7.4cqw,84px);line-height:.98;letter-spacing:-.045em;font-weight:900}
+.medium{font-size:clamp(24px,5.3cqw,58px);line-height:1.02;letter-spacing:-.035em}
+.smallcopy{font:500 clamp(12px,1.8cqw,22px) 'JetBrains Mono','Courier New',monospace;color:var(--gray);line-height:1.45}
+.accent-green{color:var(--green)}.accent-cyan{color:var(--cyan)}.accent-red{color:var(--red)}.accent-orange{color:var(--orange)}
+.card{background:rgba(19,19,19,.96);border:1px solid #2a2a2a;border-radius:2.2cqw}
+.scene .anim{opacity:0;transform:translateY(2.3% ) scale(.97);will-change:transform,opacity}
+.scene.active .anim{opacity:1;transform:translateY(0) scale(1)}
+/* Hook */
+.hook-title{position:absolute;top:11%;left:7.4%;right:7.4%;font-size:clamp(37px,8.5cqw,95px);line-height:.93;letter-spacing:-.055em}
+.hook-title .line{display:block}
+.duel{position:absolute;left:7.4%;right:7.4%;top:39%;display:grid;grid-template-columns:1fr 1fr;gap:4%;align-items:center}
+.name-card{min-height:24cqw;padding:7% 6%;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.name-card:after{content:"";position:absolute;inset:0;opacity:.14;pointer-events:none;background:linear-gradient(135deg,currentColor,transparent 65%)}
+.name-card h2{font-size:clamp(23px,5.4cqw,62px);line-height:.98;letter-spacing:-.05em;margin:0 0 7%;position:relative;z-index:1}
+.name-card p{font:600 clamp(8px,1.35cqw,17px) 'JetBrains Mono',monospace;letter-spacing:.05em;color:#aaa;margin:0;position:relative;z-index:1}
+.name-card.chat{color:var(--green);border-color:rgba(118,184,55,.55)}
+.name-card.perp{color:var(--cyan);border-color:rgba(0,155,205,.55)}
+.vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:11cqw;height:11cqw;border-radius:50%;display:grid;place-items:center;background:#f6f6f6;color:#111;font:900 clamp(12px,2.3cqw,28px) 'Archivo Black',sans-serif;border:5px solid var(--bg);z-index:3}
+.wrong-tease{position:absolute;top:71%;left:7.4%;right:7.4%;text-align:center;font-size:clamp(34px,7.7cqw,86px);letter-spacing:-.045em;line-height:1}
+.wrong-tease .wrong{color:var(--red)}
+/* ChatGPT creator */
+.section-head{position:absolute;top:13%;left:7.4%;right:7.4%}
+.section-head .eyebrow{margin-bottom:4.5%}
+.creator-card{position:absolute;left:7.4%;right:7.4%;top:31%;padding:7% 6% 8%;border-color:rgba(118,184,55,.48);box-shadow:0 0 55px rgba(118,184,55,.07)}
+.creator-card .card-title{font-size:clamp(36px,7.8cqw,88px);color:var(--green);margin-bottom:8%;letter-spacing:-.05em}
+.chips{display:flex;flex-wrap:wrap;gap:2.2cqw}
+.chip{border:1px solid rgba(118,184,55,.5);background:rgba(118,184,55,.08);color:#d6efc1;padding:3.5% 4%;border-radius:999px;font:600 clamp(10px,1.65cqw,20px) 'JetBrains Mono',monospace;letter-spacing:.035em}
+.type-line{margin-top:9%;border-top:1px solid #303030;padding-top:7%;font:500 clamp(13px,2cqw,24px) 'JetBrains Mono',monospace;color:#bbb;line-height:1.6;min-height:5em}
+.type-line .cursor{display:inline-block;width:.6em;height:1.1em;background:var(--green);vertical-align:middle;margin-left:.12em;animation:blink .8s steps(2,end) infinite}
+@keyframes blink{50%{opacity:0}}
+/* Flaw */
+.flaw-head{position:absolute;left:7.4%;right:7.4%;top:7.5%;font-size:clamp(43px,10cqw,112px);line-height:.88;letter-spacing:-.06em}
+.flaw-head span{display:block}
+.mock-answer{position:absolute;left:10%;right:10%;top:34%;padding:4.5%;min-height:15%;border:1px solid #303030;background:#131313;border-radius:2cqw}
+.mock-answer .label{font:600 clamp(9px,1.45cqw,17px) 'JetBrains Mono',monospace;color:#777;margin-bottom:4%}
+.fake-line{height:1.1cqw;min-height:5px;background:#444;border-radius:9px;margin:3.4% 0}
+.fake-line:nth-child(2){width:88%}.fake-line:nth-child(3){width:70%}.fake-line:nth-child(4){width:80%}
+.stamp{position:absolute;right:5%;top:5%;font:700 clamp(10px,1.7cqw,21px) 'JetBrains Mono',monospace;color:var(--red);border:2px solid var(--red);padding:1.5% 2.5%;transform:rotate(7deg);background:#171010}
+.footage{position:absolute;left:9.25%;width:81.5%;top:58%;height:26%;background:#101010;border:2px dashed var(--green);border-radius:2cqw;display:grid;place-items:center}
+.footage .footage-label{font:600 clamp(9px,1.55cqw,18px) 'JetBrains Mono',monospace;letter-spacing:.04em;color:var(--green);text-align:center;padding:0 3%}
+.footage.cyan{border-color:var(--cyan)}.footage.cyan .footage-label{color:var(--cyan)}
+/* Perplexity */
+.perp-head{position:absolute;left:7.4%;right:7.4%;top:7.5%}
+.perp-head .eyebrow{margin-bottom:4%}
+.perp-head .medium{font-size:clamp(27px,5.9cqw,66px)}
+.citation-card{position:absolute;left:7.4%;right:7.4%;top:27%;padding:4.8%;border-color:rgba(0,155,205,.5);background:rgba(19,19,19,.97)}
+.answer-label{font:600 clamp(9px,1.45cqw,17px) 'JetBrains Mono',monospace;color:var(--cyan);letter-spacing:.12em;margin-bottom:4%}
+.cite-row{display:grid;grid-template-columns:auto 1fr;gap:3%;align-items:center;margin:3.3% 0}
+.cite-chip{font:700 clamp(11px,1.75cqw,20px) 'JetBrains Mono',monospace;color:var(--cyan);border:1px solid rgba(0,155,205,.55);background:rgba(0,155,205,.08);padding:3% 4%;border-radius:1cqw}
+.cite-text{font:500 clamp(10px,1.55cqw,18px) 'JetBrains Mono',monospace;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.source-caption{font:600 clamp(9px,1.5cqw,18px) 'JetBrains Mono',monospace;letter-spacing:.11em;color:var(--cyan);text-align:center;margin-top:5%}
+.perp-footage{top:59%;height:25%}
+/* Rule */
+.rule-stack{position:absolute;left:7.4%;right:7.4%;top:20%;display:flex;flex-direction:column;gap:7.5%}
+.rule-line{font-size:clamp(28px,6.4cqw,72px);line-height:1.03;letter-spacing:-.045em;text-align:center}
+.rule-line .keyword{display:block}
+.rule-line .rest{display:block;color:#fff;font-size:.72em;letter-spacing:-.025em;margin-top:2%}
+.rule-rule{width:20%;height:3px;margin:0 auto;background:#333;border-radius:5px}
+/* CTA */
+.take-panel{position:absolute;left:9%;right:9%;top:18%;padding:9% 5%;text-align:center;border-color:#393027;background:rgba(19,19,19,.96)}
+.take-label{font:700 clamp(11px,1.7cqw,20px) 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--orange);margin-bottom:8%}
+.use-both{font-size:clamp(44px,9.8cqw,108px);line-height:.9;letter-spacing:-.06em}
+.legend{display:flex;justify-content:center;gap:8%;margin-top:11%;font:600 clamp(10px,1.5cqw,18px) 'JetBrains Mono',monospace;color:#aaa}
+.legend span{display:inline-flex;align-items:center;gap:.55em}
+.dot{width:.65em;height:.65em;border-radius:50%;display:inline-block}
+.dot.green{background:var(--green)}.dot.cyan{background:var(--cyan)}
+.follow-block{position:absolute;left:8%;right:8%;top:56%;text-align:center}
+.follow-word{font-size:clamp(48px,11cqw,124px);line-height:.9;color:var(--orange);letter-spacing:-.06em}
+.follow-sub{font:600 clamp(12px,1.8cqw,22px) 'JetBrains Mono',monospace;color:#bbb;letter-spacing:.04em;margin-top:5%}
+.monogram{display:flex;justify-content:center;align-items:center;gap:3%;margin-top:6%;font:900 clamp(28px,6cqw,68px) 'Archivo Black',sans-serif;letter-spacing:-.08em}
+.monogram .k{color:#fff}.monogram .p{color:var(--orange)}
+.light-sweep{position:absolute;top:0;bottom:0;width:16%;left:-25%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-18deg);pointer-events:none}
+#controls{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:8px;z-index:1000;background:#171717;border:1px solid #393939;border-radius:999px;padding:7px}
+#controls button{border:0;border-radius:999px;padding:10px 15px;background:#292929;color:#fff;font-weight:700;font-size:14px}
+#controls button:active{background:#444}
+#debug{position:fixed;left:10px;top:10px;color:#888;background:#111d;padding:5px 8px;border-radius:5px;font:11px monospace;z-index:1000}
+body.recording #controls,body.recording #debug{display:none!important}
+body.recording{touch-action:manipulation}
+#tapStart{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);color:#fff;align-items:center;justify-content:center;text-align:center;font:600 16px 'JetBrains Mono',monospace;padding:30px}
+body.recording.waiting #tapStart{display:flex}
+.tap-inner{border:1px solid #333;border-radius:18px;padding:25px 22px;max-width:300px}
+.tap-mark{font:900 42px 'Archivo Black',sans-serif;color:var(--orange);margin-bottom:15px}
+@media(prefers-reduced-motion:reduce){.type-line .cursor{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage" aria-label="Kode Pintar motion graphics video">
+  <div id="grid"></div><div id="vignette"></div>
+  <section class="scene active" id="scene-hook" data-id="hook">
+    <div class="content">
+      <div class="hook-title anim" data-in="0.08"><span class="line">STOP USING</span><span class="line accent-green">CHATGPT</span><span class="line">FOR EVERYTHING.</span></div>
+      <div class="duel anim" data-in="0.55">
+        <div class="name-card card chat"><h2>ChatGPT</h2><p>EVERYONE'S<br>DEFAULT</p></div>
+        <div class="name-card card perp"><h2>Perplexity</h2><p>THE<br>CHALLENGER</p></div>
+        <div class="vs">VS</div>
+      </div>
+      <div class="wrong-tease anim" data-in="2.9"> <span class="wrong">WRONG</span> TOOL?</div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+  <section class="scene" id="scene-chatgpt" data-id="chatgpt">
+    <div class="content">
+      <div class="section-head anim" data-in="0.12"><div class="eyebrow">01 / CHATGPT = CREATOR</div><div class="big">MAKE IDEAS<br>HAPPEN.</div></div>
+      <div class="creator-card card anim" data-in="0.55">
+        <div class="card-title">ChatGPT</div>
+        <div class="chips">
+          <span class="chip anim" data-in="0.9">BRAINSTORMING</span>
+          <span class="chip anim" data-in="1.45">WRITING</span>
+          <span class="chip anim" data-in="2.0">CODING</span>
+        </div>
+        <div class="type-line" id="typeLine">Drafting an idea<span class="cursor"></span></div>
+      </div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+  <section class="scene" id="scene-flaw" data-id="flaw">
+    <div class="content">
+      <div class="flaw-head anim" data-in="0.08"><span>CONFIDENT</span><span><b class="accent-red">≠ CORRECT</b></span></div>
+      <div class="mock-answer card anim" data-in="0.65">
+        <div class="label">AI-GENERATED ANSWER</div>
+        <div class="fake-line"></div><div class="fake-line"></div><div class="fake-line"></div>
+        <div class="stamp anim" data-in="1.05">✕ UNVERIFIED</div>
+      </div>
+      <div class="footage anim" data-in="1.35"><div class="footage-label">LIVE TEST — FOOTAGE HERE</div></div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+  <section class="scene" id="scene-perplexity" data-id="perplexity">
+    <div class="content">
+      <div class="perp-head anim" data-in="0.08"><div class="eyebrow">02 / PERPLEXITY = RESEARCHER</div><div class="medium">RESEARCH<br>WITH RECEIPTS.</div></div>
+      <div class="citation-card card anim" data-in="0.5">
+        <div class="answer-label">ANSWER + SOURCES</div>
+        <div class="cite-row anim" data-in="0.72"><span class="cite-chip">[1]</span><span class="cite-text">Official documentation</span></div>
+        <div class="cite-row anim" data-in="1.12"><span class="cite-chip">[2]</span><span class="cite-text">Research article / report</span></div>
+        <div class="cite-row anim" data-in="1.52"><span class="cite-chip">[3]</span><span class="cite-text">Source to verify the claim</span></div>
+        <div class="source-caption">SOURCES YOU CAN CHECK</div>
+      </div>
+      <div class="footage cyan anim perp-footage" data-in="1.75"><div class="footage-label">LIVE TEST — FOOTAGE HERE</div></div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+  <section class="scene" id="scene-rule" data-id="rule">
+    <div class="content">
+      <div class="eyebrow anim" data-in="0.1" style="position:absolute;top:10%;left:7.4%">THE RULE</div>
+      <div class="rule-stack">
+        <div class="rule-line anim" data-in="0.3"><span class="keyword accent-green">CREATE</span><span class="rest">WITH CHATGPT.</span></div>
+        <div class="rule-rule anim" data-in="1.8"></div>
+        <div class="rule-line anim" data-in="2.3"><span class="keyword accent-cyan">RESEARCH</span><span class="rest">WITH PERPLEXITY.</span></div>
+        <div class="rule-rule anim" data-in="3.8"></div>
+        <div class="rule-line anim" data-in="4.3"><span class="keyword accent-orange">VERIFY</span><span class="rest">WHAT MATTERS.</span></div>
+      </div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+  <section class="scene" id="scene-cta" data-id="cta">
+    <div class="content">
+      <div class="take-panel card anim" data-in="0.12">
+        <div class="take-label">MY TAKE</div>
+        <div class="use-both">USE BOTH.</div>
+        <div class="legend"><span><i class="dot green"></i> create</span><span><i class="dot cyan"></i> verify</span></div>
+      </div>
+      <div class="follow-block">
+        <div class="follow-word anim" data-in="3.25">FOLLOW</div>
+        <div class="follow-sub anim" data-in="3.55">for daily AI tools</div>
+        <div class="monogram anim" data-in="4.0"><span class="k">K</span><span class="p">P</span></div>
+      </div>
+      <div class="light-sweep" id="lightSweep"></div>
+      <div class="watermark">ai explainer · @kodepintar0</div>
+    </div>
+  </section>
+</div>
+<div id="debug">00.000s · hook</div>
+<div id="controls"><button id="playBtn">Play</button><button id="pauseBtn">Pause</button><button id="replayBtn">Replay</button></div>
+<div id="tapStart"><div class="tap-inner"><div class="tap-mark">KP</div><div>Tap once to start<br>33-second recording</div><div class="mono" style="font-size:11px;color:#777;margin-top:12px">Keep the screen awake</div></div></div>
+<script>
+(() => {
+  'use strict';
+  const DURATION = 33.000;
+  const timeline = [
+    {t:0,id:'hook'},
+    {t:5.5,id:'chatgpt'},
+    {t:9.5,id:'flaw'},
+    {t:15.5,id:'perplexity'},
+    {t:20,id:'rule'},
+    {t:26,id:'cta'}
+  ];
+  const scenes = [...document.querySelectorAll('.scene')];
+  const debug = document.getElementById('debug');
+  const typeLine = document.getElementById('typeLine');
+  const stage = document.getElementById('stage');
+  const isRecord = new URLSearchParams(location.search).get('record') === '1';
+  if (isRecord) {
+    document.body.classList.add('recording','waiting');
+  }
+  let playing = false;
+  let elapsedBeforePause = 0;
+  let startStamp = 0;
+  let rafId = 0;
+  let activeId = 'hook';
+  let lastRendered = -1;
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
+  const easeOut = t => 1 - Math.pow(1-t,3);
+  function currentElapsed(now) {
+    return playing ? elapsedBeforePause + (now - startStamp)/1000 : elapsedBeforePause;
+  }
+  function sceneFor(t) {
+    for (let i=timeline.length-1;i>=0;i--) if (t >= timeline[i].t) return timeline[i];
+    return timeline[0];
+  }
+  function setScene(id) {
+    if (id === activeId && lastRendered !== -1) return;
+    activeId = id;
+    scenes.forEach(s => s.classList.toggle('active',s.dataset.id===id));
+  }
+  function setAnimatedElements(scene, local) {
+    scene.querySelectorAll('.anim').forEach(el => {
+      const begin = Number(el.dataset.in || 0);
+      const duration = reducedMotion ? 0.01 : 0.35;
+      const p = clamp((local-begin)/duration,0,1);
+      const e = easeOut(p);
+      el.style.opacity = String(e);
+      const translate = (1-e)*24;
+      const scale = 0.9 + 0.1*e;
+      el.style.transform = `translate3d(0,${translate}px,0) scale(${scale})`;
+    });
+  }
+  function render(now) {
+    const t = clamp(currentElapsed(now),0,DURATION);
+    const item = sceneFor(t);
+    setScene(item.id);
+    const scene = document.querySelector(`.scene[data-id="${item.id}"]`);
+    const local = t - item.t;
+    setAnimatedElements(scene,local);
+    if (item.id === 'chatgpt') {
+      const phrase = 'Drafting an idea that becomes a plan.';
+      const reveal = clamp((local-1.9)/1.5,0,1);
+      const count = Math.floor(phrase.length*reveal);
+      typeLine.innerHTML = phrase.slice(0,count) + '<span class="cursor"></span>';
+    }
+    const sweep = document.getElementById('lightSweep');
+    if (item.id === 'cta') {
+      const p = clamp((local-4.4)/1.8,0,1);
+      sweep.style.left = (-25 + p*150) + '%';
+      sweep.style.opacity = String(p>0 && p<1 ? .9 : 0);
+    } else {
+      sweep.style.opacity = '0';
+    }
+    if (debug) debug.textContent = `${t.toFixed(3).padStart(6,'0')}s · ${item.id}`;
+    lastRendered = t;
+    if (t >= DURATION) {
+      elapsedBeforePause = DURATION;
+      playing = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = 0;
+      document.getElementById('playBtn').textContent = 'Play';
+      setScene('cta');
+      const cta = document.querySelector('.scene[data-id="cta"]');
+      setAnimatedElements(cta,7);
+      document.getElementById('lightSweep').style.left = '125%';
+      document.getElementById('lightSweep').style.opacity = '0';
+      return;
+    }
+    if (playing) rafId = requestAnimationFrame(render);
+  }
+  function play() {
+    if (playing) return;
+    if (elapsedBeforePause >= DURATION) elapsedBeforePause = 0;
+    playing = true;
+    startStamp = performance.now();
+    document.getElementById('playBtn').textContent = 'Playing…';
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(render);
+  }
+  function pause() {
+    if (!playing) return;
+    elapsedBeforePause = clamp(currentElapsed(performance.now()),0,DURATION);
+    playing = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+    document.getElementById('playBtn').textContent = 'Play';
+    render(performance.now());
+  }
+  function replay() {
+    playing = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+    elapsedBeforePause = 0;
+    startStamp = 0;
+    lastRendered = -1;
+    activeId = '';
+    scenes.forEach(s => {
+      s.querySelectorAll('.anim').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translate3d(0,24px,0) scale(.9)';
+      });
+    });
+    render(performance.now());
+    play();
+  }
+  document.getElementById('playBtn').addEventListener('click',play);
+  document.getElementById('pauseBtn').addEventListener('click',pause);
+  document.getElementById('replayBtn').addEventListener('click',replay);
+  function startRecording() {
+    if (!document.body.classList.contains('waiting')) return;
+    document.body.classList.remove('waiting');
+    elapsedBeforePause = 0;
+    lastRendered = -1;
+    activeId = '';
+    play();
+  }
+  document.getElementById('tapStart').addEventListener('click',startRecording);
+  document.addEventListener('keydown',e=>{
+    if (isRecord) return;
+    if (e.code==='Space') {e.preventDefault(); playing?pause():play();}
+    if (e.key.toLowerCase()==='r') replay();
+  });
+  // Initial static frame; recording mode waits for the first deliberate tap.
+  render(performance.now());
+  if (isRecord) {
+    playing = false;
+    elapsedBeforePause = 0;
+    render(performance.now());
+  }
+  // Scene map and narration beats:
+  // 0.000–5.500 HOOK — “Stop using ChatGPT for everything. You might be using the wrong tool.” Typographic showdown, VS, WRONG TOOL? tease.
+  // 5.500–9.500 CHATGPT — “ChatGPT excels at brainstorming, writing, and coding.” Green creator card, staggered capability chips, typed draft.
+  // 9.500–15.500 FLAW — “But even smart AI can sound confident and still be wrong.” CONFIDENT ≠ CORRECT, UNVERIFIED stamp, empty green LIVE TEST footage window.
+  // 15.500–20.000 PERPLEXITY — “Perplexity focuses on web research, giving you sources you can check.” Cyan citation card, empty cyan LIVE TEST footage window.
+  // 20.000–26.000 RULE — “Create with ChatGPT. Research with Perplexity. Verify what matters.” Three sequential high-contrast statements.
+  // 26.000–33.000 CTA — “My take: use both. Create with ChatGPT, verify with Perplexity. Follow Kode Pintar.” MY TAKE panel, USE BOTH, FOLLOW and KP monogram.
+})();
+</script>
+</body>
+</html>
