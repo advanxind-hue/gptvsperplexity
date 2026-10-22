@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kode Pintar — Suno Anime Song (cards)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; background:#0c0c0c; overflow:hidden; }
+  body {
+    font-family:'JetBrains Mono', monospace; color:#f2f2f2;
+    background-image:
+      linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+    background-size:54px 54px;
+  }
+  #bar { position:fixed; top:0; left:0; height:6px; background:#ffa917; width:0%; z-index:50; }
+  body.record #bar { display:none; }
+  .scene {
+    position:fixed; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:6vw; opacity:0; pointer-events:none;
+  }
+  .scene.active { opacity:1; }
+  .kicker {
+    font-size:4.6vw; letter-spacing:.35em; color:#ffa917; font-weight:700;
+    border:2px solid #ffa917; padding:1.4vw 3.4vw; margin-bottom:5vw;
+    text-transform:uppercase;
+  }
+  .big {
+    font-family:'Archivo Black', sans-serif; font-size:13.5vw; line-height:1.04;
+    text-transform:uppercase;
+  }
+  .big.orange { color:#ffa917; }
+  .big .hl { color:#ffa917; }
+  .sub {
+    margin-top:5vw; font-size:4.4vw; line-height:1.6; color:#bdbdbd;
+    letter-spacing:.12em; text-transform:uppercase; max-width:86vw;
+  }
+  .rule { width:22vw; height:6px; background:#ffa917; margin:5vw 0 0; }
+  .cta {
+    margin-top:6vw; background:#ffa917; color:#0c0c0c;
+    font-family:'Archivo Black', sans-serif; font-size:6.4vw;
+    padding:3.4vw 6vw; text-transform:uppercase; letter-spacing:.04em;
+  }
+  .fadeup { animation:fadeUp .45s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(26px);} to { opacity:1; transform:none;} }
+  .d1 { animation-delay:.05s } .d2 { animation-delay:.22s } .d3 { animation-delay:.4s }
+  .strike { position:relative; white-space:nowrap; }
+  .strike::after {
+    content:''; position:absolute; left:-2%; right:-2%; top:54%;
+    height:.09em; background:#e5484d; transform:rotate(-2deg);
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<!-- S1 HOOK 0-5 -->
+<section class="scene" data-start="0" data-end="5">
+  <div class="kicker fadeup d1">Sound On</div>
+  <div class="big fadeup d2">I Made An<br>Anime Song</div>
+  <div class="big orange fadeup d3" style="font-size:10.5vw; margin-top:2vw">In 60 Seconds</div>
+  <div class="sub fadeup d3">I wrote the story. AI did the rest.</div>
+</section>
+
+<!-- S2 STEP 1 5-8.5 -->
+<section class="scene" data-start="5" data-end="8.5">
+  <div class="kicker fadeup d1">Step 1</div>
+  <div class="big fadeup d2">The Song</div>
+  <div class="sub fadeup d3">Lyrics: me &middot; Music + voice: Suno</div>
+</section>
+
+<!-- S3 PRO TIP 8.5-12.5 -->
+<section class="scene" data-start="8.5" data-end="12.5">
+  <div class="kicker fadeup d1">Pro Tip</div>
+  <div class="big fadeup d2">Romaji<br>&gt; <span class="strike">Kanji</span></div>
+  <div class="sub fadeup d3">Suno's free model mangles kanji.<br>Paste lyrics in romaji.</div>
+</section>
+
+<!-- S4 STEP 2 12.5-16 -->
+<section class="scene" data-start="12.5" data-end="16">
+  <div class="kicker fadeup d1">Step 2</div>
+  <div class="big fadeup d2">The Singer</div>
+  <div class="sub fadeup d3">One character &middot; Two faces</div>
+</section>
+
+<!-- S5 STEP 3 16-19.5 -->
+<section class="scene" data-start="16" data-end="19.5">
+  <div class="kicker fadeup d1">Step 3</div>
+  <div class="big fadeup d2">The<br>Animation</div>
+  <div class="sub fadeup d3">4 drawings &rarr; 4 living clips</div>
+</section>
+
+<!-- S6 END 19.5-25 -->
+<section class="scene" data-start="19.5" data-end="25">
+  <div class="big fadeup d1" style="font-size:9.2vw">The story<br>is fiction.</div>
+  <div class="big orange fadeup d2" style="font-size:9.2vw">The feeling<br>is real.</div>
+  <div class="cta fadeup d3">Follow Kode Pintar</div>
+</section>
+
+<script>
+  const DURATION = 25;
+  const scenes = [...document.querySelectorAll('.scene')];
+  const bar = document.getElementById('bar');
+  if (new URLSearchParams(location.search).has('record')) document.body.classList.add('record');
+  let t0 = performance.now();
+  function tick(now) {
+    const t = ((now - t0) / 1000) % DURATION;
+    scenes.forEach(s => {
+      const a = parseFloat(s.dataset.start), b = parseFloat(s.dataset.end);
+      const on = t >= a && t < b;
+      if (on && !s.classList.contains('active')) {
+        s.classList.add('active');
+        s.querySelectorAll('.fadeup').forEach(el => { el.style.animation='none'; void el.offsetWidth; el.style.animation=''; });
+      } else if (!on) s.classList.remove('active');
+    });
+    bar.style.width = (t / DURATION * 100) + '%';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  document.addEventListener('click', () => { t0 = performance.now(); });
+</script>
+</body>
+</html>
